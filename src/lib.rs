@@ -1,29 +1,29 @@
 #![feature(generic_const_exprs)]
 #![allow(incomplete_features)]
 
-trait IsScheme {
+trait Scheme {
     type Node;
     const N: usize;
 }
 
-trait IsContext<'db> {
-    type Scheme: IsScheme;
+trait Context<'a> {
+    type S: Scheme;
 }
 
-struct Map<S: IsScheme>
+struct Map<S: Scheme>
 where
     [(); S::N]:,
 {
     _data: [S::Node; S::N],
 }
 
-impl<S: IsScheme> Map<S>
+impl<S: Scheme> Map<S>
 where
     [(); S::N]:,
 {
-    fn new<'db, C>(_ctx: C) -> Self
+    fn new<'a, C>() -> Self
     where
-        C: IsContext<'db, Scheme = S>,
+        C: Context<'a, S = S>,
     {
         Self {
             _data: unsafe { std::mem::zeroed() },
@@ -31,9 +31,9 @@ where
     }
 }
 
-fn trigger_ice<'db, C: IsContext<'db>>(ctx: C) -> Map<C::Scheme>
+fn trigger_ice<'a, C: Context<'a>>() -> Map<C::S>
 where
-    [(); <C::Scheme>::N]:,
+    [(); C::S::N]:,
 {
-    Map::new(ctx)
+    Map::new::<C>()
 }
