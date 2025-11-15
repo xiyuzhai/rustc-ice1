@@ -1,0 +1,2 @@
+save:
+	git-save origin
